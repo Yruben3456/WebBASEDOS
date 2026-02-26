@@ -2,143 +2,188 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Web OS</title>
+    <title>Advanced Web OS</title>
     <style>
+        /* Base OS Styling */
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body, html { margin: 0; padding: 0; overflow: hidden; }
+        body, html { margin: 0; padding: 0; overflow: hidden; background: #1e293b; }
+        #desktop { width: 100vw; height: 100vh; position: relative; }
+        
+        /* Icons */
+        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, 90px); gap: 20px; padding: 20px; }
+        .icon { text-align: center; color: white; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s; }
+        .icon:hover { background: rgba(255,255,255,0.15); }
+        .icon-img { font-size: 40px; display: block; margin-bottom: 5px; }
 
-        /* The Desktop Area */
-        #desktop {
-            width: 100vw; height: 100vh;
-            background: linear-gradient(135px, #1e3a8a, #3b82f6);
-            position: relative;
+        /* Windows */
+        .window { 
+            position: absolute; background: white; border: 1px solid #444; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; 
+            flex-direction: column; border-radius: 8px; overflow: hidden; min-width: 300px;
         }
+        .window-header { 
+            background: #e2e8f0; padding: 8px 12px; cursor: move; 
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
+        }
+        .close-btn { background: #ef4444; border: none; color: white; border-radius: 50%; cursor: pointer; width: 22px; height: 22px; }
+        .content { flex-grow: 1; overflow: auto; padding: 10px; position: relative; }
 
-        /* Desktop Icons */
-        .icon {
-            width: 80px; padding: 15px; text-align: center;
-            color: white; cursor: pointer; border-radius: 5px;
-        }
-        .icon:hover { background: rgba(255,255,255,0.1); }
-        .icon-img { font-size: 40px; margin-bottom: 5px; }
+        /* Calculator Specific */
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .calc-display { grid-column: span 4; background: #eee; padding: 10px; text-align: right; font-size: 1.5rem; margin-bottom: 5px; height: 50px; }
+        .calc-btn { padding: 15px; border: 1px solid #ddd; cursor: pointer; background: #f9f9f9; }
+        .calc-btn:hover { background: #e2e8f0; }
 
-        /* Window Styling */
-        .window {
-            position: absolute; width: 450px; height: 300px;
-            background: white; border: 1px solid #777;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: none; flex-direction: column;
-            border-radius: 6px; overflow: hidden;
-        }
-        .window-header {
-            background: #f3f3f3; padding: 10px; cursor: move;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #ddd; font-weight: bold;
-        }
-        .close-btn { 
-            background: #ff5f56; border: none; color: white; 
-            border-radius: 50%; width: 20px; height: 20px; cursor: pointer;
-        }
-        .content { flex-grow: 1; padding: 0; }
-        textarea { width: 100%; height: 100%; border: none; padding: 10px; outline: none; resize: none; }
+        /* Photos & Camera */
+        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, 100px); gap: 10px; }
+        .photo-item { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
+        video, canvas { width: 100%; border-radius: 4px; background: #000; }
 
         /* Taskbar */
-        #taskbar {
-            position: absolute; bottom: 0; width: 100%; height: 45px;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-            display: flex; align-items: center; padding: 0 10px; z-index: 1000;
-        }
-        #start-btn {
-            background: #0078d4; border: none; color: white;
-            padding: 5px 15px; border-radius: 4px; cursor: pointer;
-        }
-
-        /* Start Menu */
-        #start-menu {
-            position: absolute; bottom: 50px; left: 10px; width: 200px;
-            background: #222; color: white; border-radius: 5px;
-            display: none; padding: 10px; z-index: 1001;
-        }
-        .menu-item { padding: 8px; cursor: pointer; border-radius: 3px; }
-        .menu-item:hover { background: #444; }
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 45px; background: rgba(15, 23, 42, 0.9); display: flex; align-items: center; padding: 0 15px; z-index: 1000; }
+        #start-btn { background: #3b82f6; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="desktop">
-    <!-- Icon to Open App -->
-    <div class="icon" onclick="toggleWindow('notepad')">
-        <div class="icon-img">📝</div>
-        <div>Notepad</div>
+    <div class="icon-grid">
+        <div class="icon" onclick="openApp('calc')"><span class="icon-img">🧮</span>Calc</div>
+        <div class="icon" onclick="openApp('cam'); startCamera()"><span class="icon-img">📷</span>Camera</div>
+        <div class="icon" onclick="openApp('photos'); loadPhotos()"><span class="icon-img">🖼️</span>Photos</div>
+        <div class="icon" onclick="openApp('game')"><span class="icon-img">🎮</span>Game</div>
+        <div class="icon" onclick="openApp('files')"><span class="icon-img">📂</span>Files</div>
     </div>
 
-    <!-- Notepad Window -->
-    <div id="notepad" class="window" style="top: 100px; left: 100px;">
-        <div class="window-header">
-            <span>Notepad</span>
-            <button class="close-btn" onclick="toggleWindow('notepad')">x</button>
-        </div>
+    <!-- Calculator App -->
+    <div id="calc" class="window" style="width: 250px; top: 50px; left: 150px;">
+        <div class="window-header"><span>Calculator</span><button class="close-btn" onclick="closeApp('calc')">x</button></div>
         <div class="content">
-            <textarea id="note-data" placeholder="Type and I'll save it automatically..."></textarea>
+            <div id="calc-res" class="calc-display">0</div>
+            <div class="calc-grid">
+                <button class="calc-btn" onclick="calcInput('7')">7</button><button class="calc-btn" onclick="calcInput('8')">8</button><button class="calc-btn" onclick="calcInput('9')">9</button><button class="calc-btn" onclick="calcInput('/')">/</button>
+                <button class="calc-btn" onclick="calcInput('4')">4</button><button class="calc-btn" onclick="calcInput('5')">5</button><button class="calc-btn" onclick="calcInput('6')">6</button><button class="calc-btn" onclick="calcInput('*')">*</button>
+                <button class="calc-btn" onclick="calcInput('1')">1</button><button class="calc-btn" onclick="calcInput('2')">2</button><button class="calc-btn" onclick="calcInput('3')">3</button><button class="calc-btn" onclick="calcInput('-')">-</button>
+                <button class="calc-btn" onclick="calcInput('0')">0</button><button class="calc-btn" onclick="calcClear()">C</button><button class="calc-btn" onclick="calcSolve()">=</button><button class="calc-btn" onclick="calcInput('+')">+</button>
+            </div>
         </div>
     </div>
 
-    <!-- Start Menu -->
-    <div id="start-menu">
-        <div class="menu-item" onclick="alert('System Version 1.0')">About OS</div>
-        <div class="menu-item" onclick="location.reload()">Restart</div>
+    <!-- Camera App -->
+    <div id="cam" class="window" style="width: 400px; top: 100px; left: 450px;">
+        <div class="window-header"><span>Camera</span><button class="close-btn" onclick="closeApp('cam')">x</button></div>
+        <div class="content">
+            <video id="webcam" autoplay playsinline></video>
+            <button onclick="takePhoto()" style="width:100%; margin-top:10px; padding:10px; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer;">Capture Photo</button>
+            <canvas id="cam-canvas" style="display:none;"></canvas>
+        </div>
     </div>
 
-    <!-- Taskbar -->
-    <div id="taskbar">
-        <button id="start-btn" onclick="toggleStartMenu()">Start</button>
+    <!-- Photos App -->
+    <div id="photos" class="window" style="width: 400px; height: 300px; top: 200px; left: 200px;">
+        <div class="window-header"><span>My Photos</span><button class="close-btn" onclick="closeApp('photos')">x</button></div>
+        <div id="photo-list" class="content photo-gallery">
+            <!-- Photos appear here -->
+        </div>
     </div>
+
+    <!-- Simple Game (Clicker) -->
+    <div id="game" class="window" style="width: 300px; top: 300px; left: 600px;">
+        <div class="window-header"><span>Gold Clicker</span><button class="close-btn" onclick="closeApp('game')">x</button></div>
+        <div class="content" style="text-align:center;">
+            <h3>Gold: <span id="gold-count">0</span></h3>
+            <div onclick="clickGold()" style="font-size:60px; cursor:pointer; user-select:none;">💰</div>
+        </div>
+    </div>
+
+    <!-- File Explorer -->
+    <div id="files" class="window" style="width: 400px; top: 50px; left: 50px;">
+        <div class="window-header"><span>Files</span><button class="close-btn" onclick="closeApp('files')">x</button></div>
+        <div class="content">
+            <p>System Files:</p>
+            <ul>
+                <li>photo_vault.db</li>
+                <li>os_config.json</li>
+                <li>save_game.sav</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="taskbar"><button id="start-btn">Menu</button></div>
 </div>
 
 <script>
-    // 1. App Management
-    function toggleWindow(id) {
-        const win = document.getElementById(id);
-        win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+    /* Window Management */
+    function openApp(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeApp(id) { document.getElementById(id).style.display = 'none'; }
+
+    /* Calculator Logic */
+    let calcStr = "";
+    function calcInput(val) { calcStr += val; document.getElementById('calc-res').innerText = calcStr; }
+    function calcClear() { calcStr = ""; document.getElementById('calc-res').innerText = "0"; }
+    function calcSolve() { try { calcStr = eval(calcStr).toString(); document.getElementById('calc-res').innerText = calcStr; } catch { calcStr = "Error"; } }
+
+    /* Camera & Photos Logic */
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            document.getElementById('webcam').srcObject = stream;
+        } catch (e) { alert("Camera access denied or unavailable."); }
     }
 
-    function toggleStartMenu() {
-        const menu = document.getElementById('start-menu');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    function takePhoto() {
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('cam-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        
+        const imgData = canvas.toDataURL('image/png'); // Convert to string
+        let photos = JSON.parse(localStorage.getItem('os_photos') || "[]");
+        photos.push(imgData);
+        localStorage.setItem('os_photos', JSON.stringify(photos));
+        alert("Photo Saved!");
     }
 
-    // 2. Dragging Logic
-    let activeWin = null;
-    let offsetX, offsetY;
+    function loadPhotos() {
+        const list = document.getElementById('photo-list');
+        list.innerHTML = "";
+        let photos = JSON.parse(localStorage.getItem('os_photos') || "[]");
+        photos.forEach(src => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = "photo-item";
+            list.appendChild(img);
+        });
+    }
 
-    document.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.window-header')) {
-            activeWin = e.target.closest('.window');
-            offsetX = e.clientX - activeWin.offsetLeft;
-            offsetY = e.clientY - activeWin.offsetTop;
-            activeWin.style.zIndex = 999; // Bring to front
+    /* Game Logic */
+    let gold = parseInt(localStorage.getItem('os_gold') || "0");
+    document.getElementById('gold-count').innerText = gold;
+    function clickGold() {
+        gold++;
+        document.getElementById('gold-count').innerText = gold;
+        localStorage.setItem('os_gold', gold);
+    }
+
+    /* Simple Dragging Logic */
+    let dragItem = null;
+    let offset = {x:0, y:0};
+    document.addEventListener('mousedown', e => {
+        if(e.target.closest('.window-header')) {
+            dragItem = e.target.closest('.window');
+            offset.x = e.clientX - dragItem.offsetLeft;
+            offset.y = e.clientY - dragItem.offsetTop;
+            dragItem.style.zIndex = 100;
         }
     });
-
-    document.addEventListener('mousemove', (e) => {
-        if (activeWin) {
-            activeWin.style.left = (e.clientX - offsetX) + 'px';
-            activeWin.style.top = (e.clientY - offsetY) + 'px';
+    document.addEventListener('mousemove', e => {
+        if(dragItem) {
+            dragItem.style.left = (e.clientX - offset.x) + 'px';
+            dragItem.style.top = (e.clientY - offset.y) + 'px';
         }
     });
-
-    document.addEventListener('mouseup', () => { activeWin = null; });
-
-    // 3. Virtual File System (LocalStorage)
-    const noteArea = document.getElementById('note-data');
-    
-    // Load saved data on startup
-    noteArea.value = localStorage.getItem('os_notepad_save') || "";
-
-    // Save on every keystroke
-    noteArea.addEventListener('input', () => {
-        localStorage.setItem('os_notepad_save', noteArea.value);
-    });
+    document.addEventListener('mouseup', () => dragItem = null);
 </script>
 
 </body>

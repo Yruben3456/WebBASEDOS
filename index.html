@@ -3,74 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <title>Chromebook Portable OS</title>
-    <!-- Ruffle Engine -->
+    <!-- Ruffle Engine for Flash Games -->
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0f172a; font-family: sans-serif; }
-        #desktop { width: 100%; height: 100%; position: relative; }
-        .icon { width: 80px; color: white; text-align: center; cursor: pointer; padding: 10px; display: inline-block; }
-        .window { position: absolute; background: white; border: 1px solid #000; display: none; flex-direction: column; width: 400px; height: 300px; z-index: 10; border-radius: 8px; }
-        .header { background: #334155; color: white; padding: 10px; cursor: move; display: flex; justify-content: space-between; }
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 40px; background: #000; display: flex; align-items: center; padding: 0 10px; }
-        .btn { background: #3b82f6; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: #1e293b; }
+        #desktop { width: 100%; height: 100%; position: relative; background: url('https://images.unsplash.com') center/cover; }
+        
+        /* Desktop Icons */
+        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, 90px); gap: 20px; padding: 20px; }
+        .icon { text-align: center; color: white; cursor: pointer; padding: 10px; border-radius: 8px; text-shadow: 1px 1px 2px black; }
+        .icon:hover { background: rgba(255,255,255,0.2); }
+        .icon-img { font-size: 40px; display: block; margin-bottom: 5px; }
+
+        /* Windows */
+        .window { position: absolute; background: white; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; border-radius: 8px; overflow: hidden; min-width: 300px; z-index: 10; }
+        .header { background: #334155; color: white; padding: 10px; cursor: move; display: flex; justify-content: space-between; align-items: center; }
+        .close-btn { background: #ef4444; border: none; color: white; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; }
+        .content { flex-grow: 1; overflow: auto; padding: 10px; background: #f8fafc; }
+
+        /* Taskbar */
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 45px; background: rgba(15, 23, 42, 0.9); display: flex; align-items: center; padding: 0 15px; z-index: 1000; }
+        .bar-btn { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px; font-weight: bold; }
+        
+        video { width: 100%; border-radius: 5px; background: black; }
+        #ruffle-container { width: 100%; height: 350px; background: black; }
     </style>
 </head>
 <body>
-    <div id="desktop">
-        <div class="icon" onclick="openApp('game-win')">🎮<br>Play Game</div>
-        <div class="icon" onclick="document.getElementById('swf-upload').click()">📂<br>Load .swf</div>
-        <input type="file" id="swf-upload" hidden accept=".swf" onchange="loadSWF(this)">
 
-        <!-- Game Window -->
-        <div id="game-win" class="window" style="width:600px; height:400px; top:50px; left:50px;">
-            <div class="header"><span>Ruffle Player</span><button onclick="closeApp('game-win')">X</button></div>
-            <div id="ruffle-container" style="flex:1; background:#000;"></div>
-        </div>
+<div id="desktop">
+    <div class="icon-grid">
+        <div class="icon" onclick="openApp('video-app')"><span class="icon-img">🎬</span>Videos</div>
+        <div class="icon" onclick="openApp('game-app')"><span class="icon-img">🎮</span>Flash</div>
+        <div class="icon" onclick="document.getElementById('file-loader').click()"><span class="icon-img">📂</span>Import</div>
+    </div>
 
-        <div id="taskbar">
-            <button class="btn" onclick="exportOS()">💾 Save OS to HTML</button>
-            <span style="color:gray; font-size:12px;">(Saves everything into a new file you can take home)</span>
+    <!-- Hidden Input for loading .swf or .mp4 -->
+    <input type="file" id="file-loader" hidden accept=".swf,.mp4,.webm" onchange="handleFileUpload(this)">
+
+    <!-- Video Player App -->
+    <div id="video-app" class="window" style="width: 500px; top: 50px; left: 100px;">
+        <div class="header"><span>Media Player</span><button class="close-btn" onclick="closeApp('video-app')">x</button></div>
+        <div class="content">
+            <video id="os-video-player" controls></video>
+            <p style="font-size:12px; color:#64748b;">Import an MP4 to play it here.</p>
         </div>
     </div>
 
-    <script>
-        const ruffle = window.RufflePlayer.newest();
-        const player = ruffle.createPlayer();
-        document.getElementById('ruffle-container').appendChild(player);
+    <!-- Ruffle Flash App -->
+    <div id="game-app" class="window" style="width: 600px; top: 100px; left: 400px;">
+        <div class="header"><span>Ruffle Emulator</span><button class="close-btn" onclick="closeApp('game-app')">x</button></div>
+        <div class="content">
+            <div id="ruffle-container"></div>
+            <p style="font-size:12px; color:#64748b;">Import a .swf file to play.</p>
+        </div>
+    </div>
 
-        function openApp(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeApp(id) { document.getElementById(id).style.display = 'none'; }
+    <!-- Taskbar -->
+    <div id="taskbar">
+        <button class="bar-btn" style="background:#10b981;" onclick="exportOS()">💾 Export OS to Drive</button>
+        <span style="color: #94a3b8; font-size: 12px;">Save before closing!</span>
+    </div>
+</div>
 
-        function loadSWF(input) {
-            const file = input.files[0];
-            const reader = new FileReader();
+<script>
+    // 1. Ruffle Setup
+    const ruffle = window.RufflePlayer.newest();
+    const player = ruffle.createPlayer();
+    document.getElementById("ruffle-container").appendChild(player);
+
+    function openApp(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeApp(id) { document.getElementById(id).style.display = 'none'; }
+
+    // 2. File Handling (Flash & Video)
+    function handleFileUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        if (file.name.endsWith('.swf')) {
             reader.onload = e => {
                 player.load({ data: e.target.result });
-                openApp('game-win');
+                openApp('game-app');
             };
             reader.readAsArrayBuffer(file);
+        } else {
+            // Handle Videos
+            const url = URL.createObjectURL(file);
+            const video = document.getElementById('os-video-player');
+            video.src = url;
+            openApp('video-app');
+            video.play();
+            
+            // Save video to local storage for persistence
+            reader.onload = e => localStorage.setItem('os_saved_video', e.target.result);
+            reader.readAsDataURL(file);
         }
+    }
 
-        // PORTABLE SAVE: This copies your current state into a new HTML file
-        function exportOS() {
-            const state = JSON.stringify(localStorage);
-            const blob = new Blob([`<script>localStorage.clear(); const d=${state}; Object.keys(d).forEach(k=>localStorage.setItem(k,d[k]));<\/script>` + document.documentElement.outerHTML], {type: 'text/html'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = "My_Chromebook_OS_Backup.html";
-            a.click();
+    // 3. Portable Exporter (Chromebook Critical)
+    function exportOS() {
+        const state = JSON.stringify(localStorage);
+        const restoreScript = `<script>
+            const d = ${state};
+            Object.keys(d).forEach(k => localStorage.setItem(k, d[k]));
+            location.reload(); 
+        <\/script>`;
+        
+        // This generates a self-contained file with your data inside
+        const blob = new Blob([restoreScript + document.documentElement.outerHTML], {type: 'text/html'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "My_Chromebook_OS.html";
+        a.click();
+    }
+
+    // 4. Drag Logic
+    let activeWin = null; let offset = {x:0, y:0};
+    document.addEventListener('mousedown', e => {
+        const header = e.target.closest('.header');
+        if(header) {
+            activeWin = header.parentElement;
+            offset.x = e.clientX - activeWin.offsetLeft;
+            offset.y = e.clientY - activeWin.offsetTop;
+            activeWin.style.zIndex = 100;
         }
+    });
+    document.addEventListener('mousemove', e => {
+        if(activeWin) {
+            activeWin.style.left = (e.clientX - offset.x) + 'px';
+            activeWin.style.top = (e.clientY - offset.y) + 'px';
+        }
+    });
+    document.addEventListener('mouseup', () => activeWin = null);
 
-        // Draggable Logic
-        let win = null; let ox, oy;
-        document.addEventListener('mousedown', e => {
-            if(e.target.closest('.header')) {
-                win = e.target.closest('.window');
-                ox = e.clientX - win.offsetLeft; oy = e.clientY - win.offsetTop;
-            }
-        });
-        document.addEventListener('mousemove', e => { if(win) { win.style.left = (e.clientX - ox)+'px'; win.style.top = (e.clientY - oy)+'px'; } });
-        document.addEventListener('mouseup', () => win = null);
-    </script>
+    // Restore video on load if it exists
+    window.onload = () => {
+        const savedVid = localStorage.getItem('os_saved_video');
+        if(savedVid) document.getElementById('os-video-player').src = savedVid;
+    };
+</script>
 </body>
 </html>
+

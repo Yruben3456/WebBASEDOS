@@ -2,174 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Portable Web OS + Ruffle</title>
-    <!-- Load Ruffle Emulator Engine -->
-    <script src="https://unpkg.com"></script>
+    <title>Chromebook Portable OS</title>
+    <!-- Ruffle Engine -->
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body, html { margin: 0; padding: 0; overflow: hidden; background: #0f172a; }
-        #desktop { width: 100vw; height: 100vh; position: relative; background-size: cover; }
-        
-        /* Icons */
-        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, 100px); gap: 15px; padding: 20px; }
-        .icon { text-align: center; color: white; cursor: pointer; padding: 10px; border-radius: 8px; text-shadow: 1px 1px 3px black; }
-        .icon:hover { background: rgba(255,255,255,0.2); }
-        .icon-img { font-size: 45px; display: block; }
-
-        /* Windows */
-        .window { 
-            position: absolute; background: #fff; border: 1px solid #333; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6); display: none; 
-            flex-direction: column; border-radius: 10px; overflow: hidden; z-index: 10;
-        }
-        .window-header { 
-            background: #1e293b; color: white; padding: 10px; cursor: move; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .close-btn { background: #ff5f56; border: none; color: white; border-radius: 50%; cursor: pointer; width: 20px; height: 20px; }
-        .content { flex-grow: 1; overflow: auto; padding: 10px; }
-
-        /* Taskbar */
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 50px; background: rgba(0,0,0,0.8); display: flex; align-items: center; padding: 0 20px; gap: 10px; }
-        .bar-btn { background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .save-btn { background: #10b981; }
-
-        /* Flash Player Container */
-        #ruffle-container { width: 100%; height: 100%; background: #000; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0f172a; font-family: sans-serif; }
+        #desktop { width: 100%; height: 100%; position: relative; }
+        .icon { width: 80px; color: white; text-align: center; cursor: pointer; padding: 10px; display: inline-block; }
+        .window { position: absolute; background: white; border: 1px solid #000; display: none; flex-direction: column; width: 400px; height: 300px; z-index: 10; border-radius: 8px; }
+        .header { background: #334155; color: white; padding: 10px; cursor: move; display: flex; justify-content: space-between; }
+        #taskbar { position: absolute; bottom: 0; width: 100%; height: 40px; background: #000; display: flex; align-items: center; padding: 0 10px; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
     </style>
 </head>
 <body>
+    <div id="desktop">
+        <div class="icon" onclick="openApp('game-win')">🎮<br>Play Game</div>
+        <div class="icon" onclick="document.getElementById('swf-upload').click()">📂<br>Load .swf</div>
+        <input type="file" id="swf-upload" hidden accept=".swf" onchange="loadSWF(this)">
 
-<div id="desktop">
-    <div class="icon-grid">
-        <div class="icon" onclick="openApp('ruffle-win')"><span class="icon-img">🕹️</span>Flash Game</div>
-        <div class="icon" onclick="openApp('cam'); startCamera()"><span class="icon-img">📷</span>Camera</div>
-        <div class="icon" onclick="openApp('photos'); loadPhotos()"><span class="icon-img">🖼️</span>Photos</div>
-        <div class="icon" onclick="document.getElementById('file-input').click()"><span class="icon-img">📂</span>Upload SWF</div>
-    </div>
+        <!-- Game Window -->
+        <div id="game-win" class="window" style="width:600px; height:400px; top:50px; left:50px;">
+            <div class="header"><span>Ruffle Player</span><button onclick="closeApp('game-win')">X</button></div>
+            <div id="ruffle-container" style="flex:1; background:#000;"></div>
+        </div>
 
-    <!-- Hidden Inputs -->
-    <input type="file" id="file-input" style="display:none" accept=".swf" onchange="loadExternalFlash(this)">
-
-    <!-- Ruffle Flash Player Window -->
-    <div id="ruffle-win" class="window" style="width: 600px; height: 450px; top: 50px; left: 300px;">
-        <div class="window-header"><span>Ruffle Player</span><button class="close-btn" onclick="closeApp('ruffle-win')">x</button></div>
-        <div class="content" id="ruffle-content">
-            <div id="ruffle-container"></div>
-            <p style="font-size: 12px; color: #666;">Drag an .swf file onto the desktop icon to play.</p>
+        <div id="taskbar">
+            <button class="btn" onclick="exportOS()">💾 Save OS to HTML</button>
+            <span style="color:gray; font-size:12px;">(Saves everything into a new file you can take home)</span>
         </div>
     </div>
 
-    <!-- Camera Window -->
-    <div id="cam" class="window" style="width: 400px; top: 100px; left: 50px;">
-        <div class="window-header"><span>Camera</span><button class="close-btn" onclick="closeApp('cam')">x</button></div>
-        <div class="content">
-            <video id="webcam" autoplay playsinline style="width:100%"></video>
-            <button onclick="takePhoto()" style="width:100%; margin-top:10px; padding:10px; background:#10b981; color:white; border:none; cursor:pointer;">Capture</button>
-            <canvas id="cam-canvas" style="display:none;"></canvas>
-        </div>
-    </div>
+    <script>
+        const ruffle = window.RufflePlayer.newest();
+        const player = ruffle.createPlayer();
+        document.getElementById('ruffle-container').appendChild(player);
 
-    <!-- Photos Window -->
-    <div id="photos" class="window" style="width: 450px; height: 350px; top: 150px; left: 150px;">
-        <div class="window-header"><span>Photo Gallery</span><button class="close-btn" onclick="closeApp('photos')">x</button></div>
-        <div id="photo-list" class="content" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 5px;"></div>
-    </div>
+        function openApp(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeApp(id) { document.getElementById(id).style.display = 'none'; }
 
-    <!-- Taskbar -->
-    <div id="taskbar">
-        <button class="bar-btn">Menu</button>
-        <button class="bar-btn save-btn" onclick="exportOS()">💾 Save OS State (.html)</button>
-    </div>
-</div>
-
-<script>
-    /* 1. App Management */
-    function openApp(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeApp(id) { document.getElementById(id).style.display = 'none'; }
-
-    /* 2. Ruffle Flash Logic */
-    const ruffle = window.RufflePlayer.newest();
-    const player = ruffle.createPlayer();
-    document.getElementById("ruffle-container").appendChild(player);
-
-    function loadExternalFlash(input) {
-        if (input.files && input.files[0]) {
+        function loadSWF(input) {
+            const file = input.files[0];
             const reader = new FileReader();
             reader.onload = e => {
                 player.load({ data: e.target.result });
-                openApp('ruffle-win');
+                openApp('game-win');
             };
-            reader.readAsArrayBuffer(input.files[0]);
+            reader.readAsArrayBuffer(file);
         }
-    }
 
-    /* 3. Camera & Photos */
-    async function startCamera() {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        document.getElementById('webcam').srcObject = stream;
-    }
+        // PORTABLE SAVE: This copies your current state into a new HTML file
+        function exportOS() {
+            const state = JSON.stringify(localStorage);
+            const blob = new Blob([`<script>localStorage.clear(); const d=${state}; Object.keys(d).forEach(k=>localStorage.setItem(k,d[k]));<\/script>` + document.documentElement.outerHTML], {type: 'text/html'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "My_Chromebook_OS_Backup.html";
+            a.click();
+        }
 
-    function takePhoto() {
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('cam-canvas');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        const imgData = canvas.toDataURL('image/png');
-        let photos = JSON.parse(localStorage.getItem('os_photos') || "[]");
-        photos.push(imgData);
-        localStorage.setItem('os_photos', JSON.stringify(photos));
-    }
-
-    function loadPhotos() {
-        const list = document.getElementById('photo-list');
-        list.innerHTML = "";
-        JSON.parse(localStorage.getItem('os_photos') || "[]").forEach(src => {
-            const img = document.createElement('img');
-            img.src = src; img.style.width = "100%";
-            list.appendChild(img);
+        // Draggable Logic
+        let win = null; let ox, oy;
+        document.addEventListener('mousedown', e => {
+            if(e.target.closest('.header')) {
+                win = e.target.closest('.window');
+                ox = e.clientX - win.offsetLeft; oy = e.clientY - win.offsetTop;
+            }
         });
-    }
-
-    /* 4. THE EXPORTER (Saves everything into a new HTML file) */
-    function exportOS() {
-        const currentHTML = document.documentElement.outerHTML;
-        // Collect current storage
-        const storageData = JSON.stringify(localStorage);
-        
-        // Create a script that injects the storage back in when the saved file is opened
-        const injectScript = `<script>
-            const data = ${storageData};
-            Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
-            console.log("OS State Restored");
-        <\/script>`;
-
-        const blob = new Blob([injectScript + currentHTML], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = "MyPersonalOS_Backup.html";
-        a.click();
-    }
-
-    /* 5. Dragging Logic */
-    let dragItem = null; let offset = {x:0, y:0};
-    document.addEventListener('mousedown', e => {
-        const header = e.target.closest('.window-header');
-        if(header) {
-            dragItem = header.parentElement;
-            offset.x = e.clientX - dragItem.offsetLeft;
-            offset.y = e.clientY - dragItem.offsetTop;
-            dragItem.style.zIndex = 1000;
-        }
-    });
-    document.addEventListener('mousemove', e => {
-        if(dragItem) {
-            dragItem.style.left = (e.clientX - offset.x) + 'px';
-            dragItem.style.top = (e.clientY - offset.y) + 'px';
-        }
-    });
-    document.addEventListener('mouseup', () => dragItem = null);
-</script>
-
+        document.addEventListener('mousemove', e => { if(win) { win.style.left = (e.clientX - ox)+'px'; win.style.top = (e.clientY - oy)+'px'; } });
+        document.addEventListener('mouseup', () => win = null);
+    </script>
 </body>
 </html>

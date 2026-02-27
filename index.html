@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Web OS</title>
+  <title>Web OS – Single File</title>
   <style>
     * {
       box-sizing: border-box;
@@ -87,7 +87,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       gap: 20px;
-      max-width: 400px;
+      max-width: 420px;
     }
 
     .app-icon {
@@ -118,8 +118,8 @@
       position: absolute;
       top: 80px;
       left: 200px;
-      width: 400px;
-      height: 300px;
+      width: 420px;
+      height: 320px;
       background: #222;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
@@ -171,7 +171,6 @@
       font-size: 0.9rem;
     }
 
-    /* Apps */
     /* Clock app */
     #clock-display {
       font-size: 2.5rem;
@@ -238,6 +237,23 @@
       background: #1565c0;
     }
 
+    #calendar-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    #calendar-controls button {
+      padding: 2px 6px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #333;
+      color: #fff;
+    }
+
     /* Notepad */
     #notepad-text {
       width: 100%;
@@ -252,28 +268,119 @@
       font-size: 0.9rem;
     }
 
-    /* Simple placeholders */
-    .placeholder-list li {
-      margin-left: 18px;
-      margin-bottom: 4px;
+    /* Files */
+    #files-list {
+      margin-top: 8px;
+      max-height: 200px;
+      overflow-y: auto;
     }
 
+    #files-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid #333;
+      font-size: 0.85rem;
+    }
+
+    #files-list button {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #444;
+      color: #fff;
+      margin-left: 4px;
+    }
+
+    /* Photos */
+    #photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    #photos-grid img {
+      width: 100%;
+      border-radius: 4px;
+      object-fit: cover;
+      height: 70px;
+    }
+
+    /* Videos */
+    #videos-list video {
+      width: 100%;
+      margin-top: 6px;
+      border-radius: 4px;
+    }
+
+    /* Camera */
     .camera-preview {
       width: 100%;
       height: 200px;
       border-radius: 6px;
-      background: repeating-linear-gradient(
-        45deg,
-        #222,
-        #222 10px,
-        #333 10px,
-        #333 20px
-      );
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #aaa;
       font-size: 0.9rem;
+    }
+
+    #camera-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    /* Games */
+    #games-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #guess-result {
+      margin-top: 4px;
+      font-size: 0.85rem;
+    }
+
+    #click-count {
+      font-weight: 600;
+    }
+
+    /* Small helpers */
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .small-input {
+      font-size: 0.8rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #111;
+      color: #fff;
+    }
+
+    .small-btn {
+      font-size: 0.8rem;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #444;
+      color: #fff;
+      margin-left: 4px;
+    }
+
+    .small-btn:hover {
+      background: #555;
     }
   </style>
 </head>
@@ -394,7 +501,11 @@
         </div>
       </div>
       <div class="window-body">
-        <div id="calendar-month"></div>
+        <div id="calendar-controls">
+          <button id="cal-prev">&lt;</button>
+          <div id="calendar-month"></div>
+          <button id="cal-next">&gt;</button>
+        </div>
         <div id="calendar"></div>
       </div>
     </div>
@@ -402,19 +513,21 @@
     <!-- Files window -->
     <div class="window" id="win-files">
       <div class="window-header">
-        <div class="window-title">Files</div>
+        <div class="window-title">Files (LocalStorage)</div>
         <div class="window-controls">
           <button class="window-btn btn-min"></button>
           <button class="window-btn btn-close"></button>
         </div>
       </div>
       <div class="window-body">
-        <p>Sample files:</p>
-        <ul class="placeholder-list">
-          <li>document.txt</li>
-          <li>music.mp3</li>
-          <li>photo.png</li>
-        </ul>
+        <div class="section-title">Create file</div>
+        <input id="file-name" class="small-input" placeholder="name.txt" />
+        <button id="file-create" class="small-btn">Create</button>
+        <textarea id="file-content" class="small-input" style="width:100%;height:60px;margin-top:4px;" placeholder="File content..."></textarea>
+        <button id="file-save" class="small-btn" style="margin-top:4px;">Save content</button>
+
+        <div class="section-title" style="margin-top:10px;">Files on virtual disk</div>
+        <ul id="files-list"></ul>
       </div>
     </div>
 
@@ -428,7 +541,19 @@
         </div>
       </div>
       <div class="window-body">
-        <p>Mini game: guess a number 1–5 (open console to play in JS 😉)</p>
+        <div id="games-container">
+          <div>
+            <div class="section-title">Number Guess (1–10)</div>
+            <input id="guess-input" class="small-input" type="number" min="1" max="10" />
+            <button id="guess-btn" class="small-btn">Guess</button>
+            <div id="guess-result"></div>
+          </div>
+          <div>
+            <div class="section-title">Clicker</div>
+            <button id="click-btn" class="small-btn">Click me!</button>
+            <span>Clicks: <span id="click-count">0</span></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -442,7 +567,9 @@
         </div>
       </div>
       <div class="window-body">
-        <p>Photo gallery placeholder.</p>
+        <div class="section-title">Add photos</div>
+        <input type="file" id="photos-input" accept="image/*" multiple />
+        <div id="photos-grid"></div>
       </div>
     </div>
 
@@ -456,7 +583,12 @@
         </div>
       </div>
       <div class="window-body">
-        <p>Video library placeholder.</p>
+        <div class="section-title">Add videos</div>
+        <input type="file" id="videos-input" accept="video/*" multiple />
+        <div id="videos-list"></div>
+        <p style="margin-top:6px;font-size:0.75rem;opacity:0.8;">
+          Videos are available while this page is open (not stored permanently).
+        </p>
       </div>
     </div>
 
@@ -470,10 +602,14 @@
         </div>
       </div>
       <div class="window-body">
-        <div class="camera-preview">Fake camera preview</div>
-        <p style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
-          (You could hook this up to getUserMedia for a real camera.)
+        <div class="camera-preview">
+          <video id="camera-video" autoplay playsinline></video>
+        </div>
+        <button id="camera-capture" class="small-btn" style="margin-top:6px;">Capture to Photos</button>
+        <p style="margin-top: 6px; font-size: 0.8rem; opacity: 0.8;">
+          Allow camera permission when asked. Captured images go into the Photos app.
         </p>
+        <canvas id="camera-canvas" style="display:none;"></canvas>
       </div>
     </div>
 
@@ -491,23 +627,30 @@
       </div>
     </div>
 
-    <!-- Ruffle window (placeholder) -->
+    <!-- Ruffle window -->
     <div class="window" id="win-ruffle">
       <div class="window-header">
-        <div class="window-title">Ruffle</div>
+        <div class="window-title">Ruffle (Flash)</div>
         <div class="window-controls">
           <button class="window-btn btn-min"></button>
           <button class="window-btn btn-close"></button>
         </div>
       </div>
       <div class="window-body">
-        <p>Placeholder for Ruffle / Flash content.</p>
+        <p style="font-size:0.8rem;opacity:0.9;">
+          This uses Ruffle to load Flash content. You need to be online and have a .swf file.
+        </p>
+        <input type="file" id="ruffle-input" accept=".swf" class="small-input" />
+        <div id="ruffle-container" style="margin-top:8px;"></div>
       </div>
     </div>
   </div>
 
+  <!-- Ruffle loader (online) -->
+  <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+
   <script>
-    // ---------- LOCKSCREEN ----------
+    // ---------- LOCKSCREEN & CLOCK ----------
     const lockscreen = document.getElementById("lockscreen");
     const lockTime = document.getElementById("lock-time");
     const lockDate = document.getElementById("lock-date");
@@ -619,7 +762,6 @@
           calcExpression = "";
         } else if (val === "=") {
           try {
-            // basic eval (for demo only)
             calcExpression = String(Function("return " + calcExpression)());
           } catch {
             calcExpression = "Error";
@@ -633,14 +775,15 @@
     });
 
     // ---------- CALENDAR ----------
+    let calCurrent = new Date();
+
     function buildCalendar() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const today = now.getDate();
+      const year = calCurrent.getFullYear();
+      const month = calCurrent.getMonth();
+      const today = new Date();
 
       const monthLabel = document.getElementById("calendar-month");
-      monthLabel.textContent = now.toLocaleString(undefined, {
+      monthLabel.textContent = calCurrent.toLocaleString(undefined, {
         month: "long",
         year: "numeric",
       });
@@ -667,22 +810,26 @@
       for (let d = 1; d <= daysInMonth; d++) {
         const cell = document.createElement("div");
         cell.textContent = d;
-        if (d === today) cell.classList.add("today");
+        if (
+          d === today.getDate() &&
+          month === today.getMonth() &&
+          year === today.getFullYear()
+        ) {
+          cell.classList.add("today");
+        }
         cal.appendChild(cell);
       }
     }
     buildCalendar();
 
-    // ---------- SIMPLE GAME (console) ----------
-    // Open dev tools console and run: playGuess()
-    function playGuess() {
-      const secret = Math.floor(Math.random() * 5) + 1;
-      const guess = Number(prompt("Guess a number 1–5"));
-      if (!guess) return;
-      if (guess === secret) alert("You win!");
-      else alert("Nope, it was " + secret);
-    }
-    window.playGuess = playGuess;
+    document.getElementById("cal-prev").addEventListener("click", () => {
+      calCurrent.setMonth(calCurrent.getMonth() - 1);
+      buildCalendar();
+    });
+    document.getElementById("cal-next").addEventListener("click", () => {
+      calCurrent.setMonth(calCurrent.getMonth() + 1);
+      buildCalendar();
+    });
 
     // ---------- NOTEPAD PERSISTENCE ----------
     const notepad = document.getElementById("notepad-text");
@@ -691,10 +838,234 @@
     notepad.addEventListener("input", () => {
       localStorage.setItem("webos_notepad", notepad.value);
     });
+
+    // ---------- FILES APP (virtual disk in localStorage) ----------
+    const FILES_KEY = "webos_files";
+    const fileNameInput = document.getElementById("file-name");
+    const fileContentInput = document.getElementById("file-content");
+    const fileCreateBtn = document.getElementById("file-create");
+    const fileSaveBtn = document.getElementById("file-save");
+    const filesList = document.getElementById("files-list");
+
+    function loadFiles() {
+      const raw = localStorage.getItem(FILES_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }
+
+    function saveFiles(files) {
+      localStorage.setItem(FILES_KEY, JSON.stringify(files));
+      renderFiles();
+    }
+
+    function renderFiles() {
+      const files = loadFiles();
+      filesList.innerHTML = "";
+      Object.keys(files).forEach((name) => {
+        const li = document.createElement("li");
+        const span = document.createElement("span");
+        span.textContent = name;
+        li.appendChild(span);
+
+        const btnOpen = document.createElement("button");
+        btnOpen.textContent = "Open";
+        btnOpen.addEventListener("click", () => {
+          fileNameInput.value = name;
+          fileContentInput.value = files[name];
+        });
+
+        const btnDelete = document.createElement("button");
+        btnDelete.textContent = "Delete";
+        btnDelete.addEventListener("click", () => {
+          const f = loadFiles();
+          delete f[name];
+          saveFiles(f);
+        });
+
+        li.appendChild(btnOpen);
+        li.appendChild(btnDelete);
+        filesList.appendChild(li);
+      });
+    }
+
+    fileCreateBtn.addEventListener("click", () => {
+      const name = fileNameInput.value.trim();
+      if (!name) {
+        alert("Enter a file name.");
+        return;
+      }
+      const files = loadFiles();
+      if (!files[name]) {
+        files[name] = "";
+        saveFiles(files);
+      }
+      fileContentInput.value = "";
+    });
+
+    fileSaveBtn.addEventListener("click", () => {
+      const name = fileNameInput.value.trim();
+      if (!name) {
+        alert("Enter a file name first.");
+        return;
+      }
+      const files = loadFiles();
+      files[name] = fileContentInput.value;
+      saveFiles(files);
+    });
+
+    renderFiles();
+
+    // ---------- PHOTOS APP ----------
+    const photosInput = document.getElementById("photos-input");
+    const photosGrid = document.getElementById("photos-grid");
+    const PHOTOS_KEY = "webos_photos";
+
+    function loadPhotos() {
+      const raw = localStorage.getItem(PHOTOS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function savePhotos(list) {
+      localStorage.setItem(PHOTOS_KEY, JSON.stringify(list));
+      renderPhotos();
+    }
+
+    function renderPhotos() {
+      const photos = loadPhotos();
+      photosGrid.innerHTML = "";
+      photos.forEach((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        photosGrid.appendChild(img);
+      });
+    }
+
+    photosInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      const readerPromises = files.map(
+        (file) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          })
+      );
+      Promise.all(readerPromises).then((dataUrls) => {
+        const current = loadPhotos();
+        savePhotos(current.concat(dataUrls));
+      });
+    });
+
+    renderPhotos();
+
+    // ---------- VIDEOS APP ----------
+    const videosInput = document.getElementById("videos-input");
+    const videosList = document.getElementById("videos-list");
+
+    videosInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      files.forEach((file) => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement("video");
+        video.controls = true;
+        video.src = url;
+        videosList.appendChild(video);
+      });
+    });
+
+    // ---------- CAMERA APP ----------
+    const cameraVideo = document.getElementById("camera-video");
+    const cameraCaptureBtn = document.getElementById("camera-capture");
+    const cameraCanvas = document.getElementById("camera-canvas");
+    let cameraStream = null;
+
+    async function startCamera() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        cameraVideo.srcObject = cameraStream;
+      } catch (err) {
+        cameraVideo.parentElement.textContent = "Camera access denied or not available.";
+      }
+    }
+
+    // Start camera when camera window is opened
+    windows.camera.addEventListener("transitionend", () => {
+      if (windows.camera.style.display !== "none" && !cameraStream) {
+        startCamera();
+      }
+    });
+
+    // Also start when double-clicked icon opens it
+    document.querySelector('[data-app="camera"]').addEventListener("dblclick", () => {
+      if (!cameraStream) startCamera();
+    });
+
+    cameraCaptureBtn.addEventListener("click", () => {
+      if (!cameraStream) {
+        alert("Camera not started.");
+        return;
+      }
+      const video = cameraVideo;
+      const canvas = cameraCanvas;
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/png");
+      const current = loadPhotos();
+      savePhotos(current.concat([dataUrl]));
+      alert("Captured to Photos app.");
+    });
+
+    // ---------- GAMES APP ----------
+    const guessInput = document.getElementById("guess-input");
+    const guessBtn = document.getElementById("guess-btn");
+    const guessResult = document.getElementById("guess-result");
+    const clickBtn = document.getElementById("click-btn");
+    const clickCountSpan = document.getElementById("click-count");
+    let secretNumber = Math.floor(Math.random() * 10) + 1;
+    let clickCount = 0;
+
+    guessBtn.addEventListener("click", () => {
+      const val = Number(guessInput.value);
+      if (!val || val < 1 || val > 10) {
+        guessResult.textContent = "Enter a number between 1 and 10.";
+        return;
+      }
+      if (val === secretNumber) {
+        guessResult.textContent = "Correct! New number generated.";
+        secretNumber = Math.floor(Math.random() * 10) + 1;
+      } else if (val < secretNumber) {
+        guessResult.textContent = "Too low.";
+      } else {
+        guessResult.textContent = "Too high.";
+      }
+    });
+
+    clickBtn.addEventListener("click", () => {
+      clickCount++;
+      clickCountSpan.textContent = clickCount;
+    });
+
+    // ---------- RUFFLE APP ----------
+    const ruffleInput = document.getElementById("ruffle-input");
+    const ruffleContainer = document.getElementById("ruffle-container");
+
+    ruffleInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      ruffleContainer.innerHTML = "";
+      const ruffle = window.RufflePlayer?.newest();
+      if (!ruffle) {
+        ruffleContainer.textContent = "Ruffle failed to load.";
+        return;
+      }
+      const player = ruffle.createPlayer();
+      ruffleContainer.appendChild(player);
+      player.load({ url });
+    });
   </script>
 </body>
 </html>
-
-
-
 

@@ -1,275 +1,700 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Ultimate Portable Web OS</title>
-    <script src="https://unpkg.com"></script>
-    <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; background: #0f172a; }
-        
-        /* Screens */
-        #login-screen { position: fixed; inset: 0; background: #1e293b; z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; }
-        #desktop { width: 100%; height: 100%; position: relative; background: url('https://images.unsplash.com') center/cover; display: none; }
-        
-        /* Desktop UI */
-        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, 95px); gap: 15px; padding: 20px; }
-        .icon { text-align: center; color: white; cursor: pointer; padding: 10px; border-radius: 8px; text-shadow: 1px 1px 2px black; transition: 0.2s; }
-        .icon:hover { background: rgba(255,255,255,0.2); }
-        .icon-img { font-size: 40px; display: block; margin-bottom: 5px; }
+  <meta charset="UTF-8" />
+  <title>Web OS</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, sans-serif;
+    }
 
-        /* Windows */
-        .window { position: absolute; background: white; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; border-radius: 8px; overflow: hidden; min-width: 300px; z-index: 10; }
-        .header { background: #334155; color: white; padding: 10px; cursor: move; display: flex; justify-content: space-between; align-items: center; }
-        .close-btn { background: #ef4444; border: none; color: white; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; }
-        .content { flex-grow: 1; overflow: auto; padding: 10px; background: #f8fafc; }
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: #111;
+      color: #fff;
+    }
 
-        /* Apps UI */
-        #taskbar { position: absolute; bottom: 0; width: 100%; height: 45px; background: rgba(0,0,0,0.9); display: flex; align-items: center; padding: 0 15px; z-index: 1000; }
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .calc-btn { padding: 15px; background: #eee; border: none; cursor: pointer; }
-        canvas { border: 1px solid #ccc; background: white; cursor: crosshair; display: block; margin: 0 auto; }
-        video, #webcam { width: 100%; border-radius: 4px; background: #000; }
-        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 10px; }
-        .photo-item { width: 80px; height: 80px; object-fit: cover; border: 1px solid #ddd; }
-        .file-item { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #eee; cursor: pointer; }
-    </style>
+    /* Lockscreen */
+    #lockscreen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, #333, #000);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 999;
+    }
+
+    #lock-time {
+      font-size: 4rem;
+      font-weight: 600;
+    }
+
+    #lock-date {
+      font-size: 1.2rem;
+      opacity: 0.8;
+    }
+
+    #unlock-btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      background: #4caf50;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    #unlock-btn:hover {
+      background: #45a047;
+    }
+
+    /* Desktop */
+    #desktop {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      padding: 20px;
+    }
+
+    .taskbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 10px;
+    }
+
+    .taskbar-clock {
+      margin-left: auto;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 20px;
+      max-width: 400px;
+    }
+
+    .app-icon {
+      width: 80px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .app-icon-inner {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 5px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .app-icon span {
+      font-size: 0.8rem;
+    }
+
+    /* Windows */
+    .window {
+      position: absolute;
+      top: 80px;
+      left: 200px;
+      width: 400px;
+      height: 300px;
+      background: #222;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .window-header {
+      height: 32px;
+      background: #333;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      cursor: move;
+    }
+
+    .window-title {
+      font-size: 0.9rem;
+    }
+
+    .window-controls {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-btn {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-close {
+      background: #e53935;
+    }
+
+    .btn-min {
+      background: #fdd835;
+    }
+
+    .window-body {
+      flex: 1;
+      padding: 10px;
+      background: #1b1b1b;
+      overflow: auto;
+      font-size: 0.9rem;
+    }
+
+    /* Apps */
+    /* Clock app */
+    #clock-display {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    /* Calculator */
+    #calc-display {
+      width: 100%;
+      height: 40px;
+      margin-bottom: 10px;
+      background: #000;
+      color: #0f0;
+      padding: 5px 8px;
+      font-family: monospace;
+      font-size: 1.1rem;
+      border-radius: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    .calc-btn {
+      padding: 10px;
+      background: #333;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .calc-btn:hover {
+      background: #444;
+    }
+
+    /* Calendar */
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+      font-size: 0.75rem;
+    }
+
+    #calendar div {
+      text-align: center;
+      padding: 4px 0;
+      border-radius: 4px;
+    }
+
+    #calendar .header {
+      font-weight: 600;
+      background: #333;
+    }
+
+    #calendar .today {
+      background: #1565c0;
+    }
+
+    /* Notepad */
+    #notepad-text {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      background: #111;
+      color: #eee;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 6px;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    /* Simple placeholders */
+    .placeholder-list li {
+      margin-left: 18px;
+      margin-bottom: 4px;
+    }
+
+    .camera-preview {
+      width: 100%;
+      height: 200px;
+      border-radius: 6px;
+      background: repeating-linear-gradient(
+        45deg,
+        #222,
+        #222 10px,
+        #333 10px,
+        #333 20px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
+  <!-- LOCKSCREEN -->
+  <div id="lockscreen">
+    <div id="lock-time">--:--</div>
+    <div id="lock-date">Loading...</div>
+    <button id="unlock-btn">Unlock</button>
+  </div>
 
-<div id="login-screen">
-    <div style="font-size: 50px;">💻</div>
-    <h2>System Login</h2>
-    <input type="password" id="pass-input" placeholder="Password (Default: 1234)" style="padding: 10px; border-radius: 5px; border: none;">
-    <button onclick="checkLogin()" style="margin-top:10px; padding: 10px 25px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 5px;">Unlock</button>
-</div>
-
-<div id="desktop">
+  <!-- DESKTOP -->
+  <div id="desktop">
     <div class="icon-grid">
-        <div class="icon" onclick="openApp('file-app'); updateFileList();"><span class="icon-img">📂</span>Files</div>
-        <div class="icon" onclick="openApp('game-app')"><span class="icon-img">🎮</span>Flash</div>
-        <div class="icon" onclick="openApp('calc-app')"><span class="icon-img">🔢</span>Calc</div>
-        <div class="icon" onclick="openApp('paint-app')"><span class="icon-img">🎨</span>Paint</div>
-        <div class="icon" onclick="openApp('music-app')"><span class="icon-img">🎵</span>Music</div>
-        <div class="icon" onclick="openApp('cam-app'); startCamera()"><span class="icon-img">📷</span>Camera</div>
-        <div class="icon" onclick="openApp('photo-app'); loadPhotos()"><span class="icon-img">🖼️</span>Photos</div>
-        <div class="icon" onclick="openApp('video-app')"><span class="icon-img">🎬</span>Video</div>
-        <div class="icon" onclick="openApp('gold-app')"><span class="icon-img">💰</span>Clicker</div>
-        <div class="icon" onclick="openApp('settings-app')"><span class="icon-img">⚙️</span>Settings</div>
+      <div class="app-icon" data-app="clock">
+        <div class="app-icon-inner">🕒</div>
+        <span>Clock</span>
+      </div>
+      <div class="app-icon" data-app="calc">
+        <div class="app-icon-inner">🧮</div>
+        <span>Calculator</span>
+      </div>
+      <div class="app-icon" data-app="calendar">
+        <div class="app-icon-inner">📅</div>
+        <span>Calendar</span>
+      </div>
+      <div class="app-icon" data-app="files">
+        <div class="app-icon-inner">📁</div>
+        <span>Files</span>
+      </div>
+      <div class="app-icon" data-app="games">
+        <div class="app-icon-inner">🎮</div>
+        <span>Games</span>
+      </div>
+      <div class="app-icon" data-app="photos">
+        <div class="app-icon-inner">🖼️</div>
+        <span>Photos</span>
+      </div>
+      <div class="app-icon" data-app="videos">
+        <div class="app-icon-inner">🎬</div>
+        <span>Videos</span>
+      </div>
+      <div class="app-icon" data-app="camera">
+        <div class="app-icon-inner">📷</div>
+        <span>Camera</span>
+      </div>
+      <div class="app-icon" data-app="notepad">
+        <div class="app-icon-inner">📝</div>
+        <span>Notepad</span>
+      </div>
+      <div class="app-icon" data-app="ruffle">
+        <div class="app-icon-inner">✨</div>
+        <span>Ruffle</span>
+      </div>
     </div>
 
-    <!-- Apps -->
-    <div id="file-app" class="window" style="width:350px; top:40px; left:40px;">
-        <div class="header"><span>Files</span><button class="close-btn" onclick="closeApp('file-app')">x</button></div>
-        <div class="content">
-            <input type="text" id="new-file-name" placeholder="file.txt" style="width:70%">
-            <button onclick="createFile()">New</button>
-            <div id="file-list" style="margin-top:10px;"></div>
-            <textarea id="file-editor" style="width:100%; height:100px; display:none; margin-top:10px;"></textarea>
-            <button id="save-file-btn" style="display:none;" onclick="saveCurrentFile()">Save</button>
+    <div class="taskbar">
+      <div>Web OS</div>
+      <div class="taskbar-clock" id="taskbar-clock">--:--</div>
+    </div>
+
+    <!-- WINDOWS -->
+
+    <!-- Clock window -->
+    <div class="window" id="win-clock">
+      <div class="window-header">
+        <div class="window-title">Clock</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <div id="clock-display">--:--:--</div>
+      </div>
     </div>
 
-    <div id="game-app" class="window" style="width:600px; height:450px; top:100px; left:300px;">
-        <div class="header"><span>Ruffle Game</span><button class="close-btn" onclick="closeApp('game-app')">x</button></div>
-        <div class="content">
-            <input type="file" accept=".swf" onchange="loadSWF(this)">
-            <div id="ruffle-container" style="height:350px; margin-top:10px;"></div>
+    <!-- Calculator window -->
+    <div class="window" id="win-calc">
+      <div class="window-header">
+        <div class="window-title">Calculator</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
-    </div>
-
-    <div id="calc-app" class="window" style="width:250px; top:50px; left:500px;">
-        <div class="header"><span>Calc</span><button class="close-btn" onclick="closeApp('calc-app')">x</button></div>
-        <div class="content">
-            <div id="calc-display" style="background:#eee; padding:10px; text-align:right; font-size:1.2em; margin-bottom:5px;">0</div>
-            <div class="calc-grid">
-                <button class="calc-btn" onclick="calcInput('7')">7</button><button class="calc-btn" onclick="calcInput('8')">8</button><button class="calc-btn" onclick="calcInput('9')">9</button><button class="calc-btn" onclick="calcInput('/')">/</button>
-                <button class="calc-btn" onclick="calcInput('4')">4</button><button class="calc-btn" onclick="calcInput('5')">5</button><button class="calc-btn" onclick="calcInput('6')">6</button><button class="calc-btn" onclick="calcInput('*')">*</button>
-                <button class="calc-btn" onclick="calcInput('1')">1</button><button class="calc-btn" onclick="calcInput('2')">2</button><button class="calc-btn" onclick="calcInput('3')">3</button><button class="calc-btn" onclick="calcInput('-')">-</button>
-                <button class="calc-btn" onclick="calcInput('0')">0</button><button class="calc-btn" onclick="calcClear()">C</button><button class="calc-btn" onclick="calcSolve()">=</button><button class="calc-btn" onclick="calcInput('+')">+</button>
-            </div>
+      </div>
+      <div class="window-body">
+        <div id="calc-display">0</div>
+        <div class="calc-grid">
+          <button class="calc-btn">7</button>
+          <button class="calc-btn">8</button>
+          <button class="calc-btn">9</button>
+          <button class="calc-btn">/</button>
+          <button class="calc-btn">4</button>
+          <button class="calc-btn">5</button>
+          <button class="calc-btn">6</button>
+          <button class="calc-btn">*</button>
+          <button class="calc-btn">1</button>
+          <button class="calc-btn">2</button>
+          <button class="calc-btn">3</button>
+          <button class="calc-btn">-</button>
+          <button class="calc-btn">0</button>
+          <button class="calc-btn">.</button>
+          <button class="calc-btn">C</button>
+          <button class="calc-btn">+</button>
+          <button class="calc-btn" style="grid-column: span 4">=</button>
         </div>
+      </div>
     </div>
 
-    <div id="paint-app" class="window" style="width:430px; top:200px; left:100px;">
-        <div class="header"><span>Paint</span><button class="close-btn" onclick="closeApp('paint-app')">x</button></div>
-        <div class="content">
-            <canvas id="paint-canvas" width="400" height="300"></canvas>
-            <div style="margin-top:5px;">
-                <input type="color" id="paint-color"> <button onclick="clearCanvas()">Clear</button>
-            </div>
+    <!-- Calendar window -->
+    <div class="window" id="win-calendar">
+      <div class="window-header">
+        <div class="window-title">Calendar</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <div id="calendar-month"></div>
+        <div id="calendar"></div>
+      </div>
     </div>
 
-    <div id="cam-app" class="window" style="width:350px; top:300px; left:400px;">
-        <div class="header"><span>Camera</span><button class="close-btn" onclick="closeApp('cam-app')">x</button></div>
-        <div class="content">
-            <video id="webcam" autoplay playsinline></video>
-            <button onclick="takePhoto()" style="width:100%; margin-top:5px; background:#10b981; color:white; border:none; padding:8px;">Capture</button>
-            <canvas id="cam-canvas" style="display:none;"></canvas>
+    <!-- Files window -->
+    <div class="window" id="win-files">
+      <div class="window-header">
+        <div class="window-title">Files</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <p>Sample files:</p>
+        <ul class="placeholder-list">
+          <li>document.txt</li>
+          <li>music.mp3</li>
+          <li>photo.png</li>
+        </ul>
+      </div>
     </div>
 
-    <div id="photo-app" class="window" style="width:300px; top:50px; left:700px;">
-        <div class="header"><span>Gallery</span><button class="close-btn" onclick="closeApp('photo-app')">x</button></div>
-        <div id="photo-list" class="content photo-gallery"></div>
-    </div>
-
-    <div id="video-app" class="window" style="width:400px; top:150px; left:600px;">
-        <div class="header"><span>Video Player</span><button class="close-btn" onclick="closeApp('video-app')">x</button></div>
-        <div class="content">
-            <input type="file" accept="video/*" onchange="loadVideo(this)">
-            <video id="os-video" controls style="margin-top:10px;"></video>
+    <!-- Games window -->
+    <div class="window" id="win-games">
+      <div class="window-header">
+        <div class="window-title">Games</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <p>Mini game: guess a number 1–5 (open console to play in JS 😉)</p>
+      </div>
     </div>
 
-    <div id="music-app" class="window" style="width:300px; top:350px; left:50px;">
-        <div class="header"><span>Music</span><button class="close-btn" onclick="closeApp('music-app')">x</button></div>
-        <div class="content">
-            <input type="file" accept="audio/*" onchange="loadMusic(this)">
-            <audio id="os-audio" controls style="width:100%; margin-top:10px;"></audio>
+    <!-- Photos window -->
+    <div class="window" id="win-photos">
+      <div class="window-header">
+        <div class="window-title">Photos</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <p>Photo gallery placeholder.</p>
+      </div>
     </div>
 
-    <div id="gold-app" class="window" style="width:200px; top:250px; left:750px;">
-        <div class="header"><span>Clicker</span><button class="close-btn" onclick="closeApp('gold-app')">x</button></div>
-        <div class="content" style="text-align:center;">
-            <h3>Gold: <span id="gold-count">0</span></h3>
-            <div onclick="clickGold()" style="font-size:50px; cursor:pointer; user-select:none;">💰</div>
+    <!-- Videos window -->
+    <div class="window" id="win-videos">
+      <div class="window-header">
+        <div class="window-title">Videos</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <p>Video library placeholder.</p>
+      </div>
     </div>
 
-    <div id="settings-app" class="window" style="width:300px; top:380px; left:500px;">
-        <div class="header"><span>Settings</span><button class="close-btn" onclick="closeApp('settings-app')">x</button></div>
-        <div class="content">
-            Wallpaper URL: <input type="text" id="wall-url" style="width:100%"><br>
-            New Password: <input type="password" id="new-pass" style="width:100%"><br>
-            <button onclick="applySettings()" style="margin-top:10px; width:100%;">Apply</button>
+    <!-- Camera window -->
+    <div class="window" id="win-camera">
+      <div class="window-header">
+        <div class="window-title">Camera</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
         </div>
+      </div>
+      <div class="window-body">
+        <div class="camera-preview">Fake camera preview</div>
+        <p style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">
+          (You could hook this up to getUserMedia for a real camera.)
+        </p>
+      </div>
     </div>
 
-    <div id="taskbar">
-        <button onclick="exportOS()" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">💾 EXPORT OS (PORTABLE SAVE)</button>
+    <!-- Notepad window -->
+    <div class="window" id="win-notepad">
+      <div class="window-header">
+        <div class="window-title">Notepad</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <textarea id="notepad-text" placeholder="Type your notes here..."></textarea>
+      </div>
     </div>
-</div>
 
-<script>
-    // System Core
-    function checkLogin() {
-        const savedPass = localStorage.getItem('os_pass') || '1234';
-        if(document.getElementById('pass-input').value === savedPass) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('desktop').style.display = 'block';
-        } else { alert("Access Denied"); }
+    <!-- Ruffle window (placeholder) -->
+    <div class="window" id="win-ruffle">
+      <div class="window-header">
+        <div class="window-title">Ruffle</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <p>Placeholder for Ruffle / Flash content.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- LOCKSCREEN ----------
+    const lockscreen = document.getElementById("lockscreen");
+    const lockTime = document.getElementById("lock-time");
+    const lockDate = document.getElementById("lock-date");
+    const unlockBtn = document.getElementById("unlock-btn");
+    const taskbarClock = document.getElementById("taskbar-clock");
+
+    function updateClocks() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, "0");
+      const m = String(now.getMinutes()).padStart(2, "0");
+      const s = String(now.getSeconds()).padStart(2, "0");
+      lockTime.textContent = `${h}:${m}`;
+      taskbarClock.textContent = `${h}:${m}`;
+      const dateStr = now.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      lockDate.textContent = dateStr;
+      const clockDisplay = document.getElementById("clock-display");
+      if (clockDisplay) clockDisplay.textContent = `${h}:${m}:${s}`;
     }
+    setInterval(updateClocks, 1000);
+    updateClocks();
 
-    // Windows
-    function openApp(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeApp(id) { document.getElementById(id).style.display = 'none'; }
-
-    // Ruffle Flash
-    const ruffle = window.RufflePlayer.newest();
-    const player = ruffle.createPlayer();
-    document.getElementById("ruffle-container").appendChild(player);
-    function loadSWF(input) {
-        const reader = new FileReader();
-        reader.onload = e => player.load({ data: e.target.result });
-        reader.readAsArrayBuffer(input.files[0]);
-    }
-
-    // File System
-    let curFile = null;
-    function updateFileList() {
-        const list = document.getElementById('file-list'); list.innerHTML = "";
-        const files = JSON.parse(localStorage.getItem('os_files') || "{}");
-        Object.keys(files).forEach(name => {
-            const d = document.createElement('div'); d.className = "file-item";
-            d.innerHTML = `<span>${name}</span><button onclick="deleteFile('${name}')">X</button>`;
-            d.onclick = (e) => { if(e.target.tagName !== 'BUTTON') { curFile = name; document.getElementById('file-editor').style.display = 'block'; document.getElementById('save-file-btn').style.display = 'inline'; document.getElementById('file-editor').value = files[name]; } };
-            list.appendChild(d);
-        });
-    }
-    function createFile() {
-        const name = document.getElementById('new-file-name').value; if(!name) return;
-        const files = JSON.parse(localStorage.getItem('os_files') || "{}");
-        files[name] = ""; localStorage.setItem('os_files', JSON.stringify(files)); updateFileList();
-    }
-    function saveCurrentFile() {
-        const files = JSON.parse(localStorage.getItem('os_files') || "{}");
-        files[curFile] = document.getElementById('file-editor').value;
-        localStorage.setItem('os_files', JSON.stringify(files)); alert("Saved");
-    }
-    function deleteFile(n) { const f = JSON.parse(localStorage.getItem('os_files') || "{}"); delete f[n]; localStorage.setItem('os_files', JSON.stringify(f)); updateFileList(); }
-
-    // Calculator
-    let cStr = "";
-    function calcInput(v) { cStr += v; document.getElementById('calc-display').innerText = cStr; }
-    function calcClear() { cStr = ""; document.getElementById('calc-display').innerText = "0"; }
-    function calcSolve() { try { cStr = eval(cStr).toString(); document.getElementById('calc-display').innerText = cStr; } catch { cStr = "Error"; } }
-
-    // Paint
-    const pCanvas = document.getElementById('paint-canvas'); const pCtx = pCanvas.getContext('2d');
-    let isDrawing = false;
-    pCanvas.onmousedown = () => isDrawing = true;
-    pCanvas.onmouseup = () => { isDrawing = false; pCtx.beginPath(); };
-    pCanvas.onmousemove = (e) => {
-        if(!isDrawing) return; pCtx.lineWidth = 5; pCtx.lineCap = 'round';
-        pCtx.strokeStyle = document.getElementById('paint-color').value;
-        pCtx.lineTo(e.offsetX, e.offsetY); pCtx.stroke();
-    };
-    function clearCanvas() { pCtx.clearRect(0,0,400,300); }
-
-    // Media
-    async function startCamera() { const s = await navigator.mediaDevices.getUserMedia({video:true}); document.getElementById('webcam').srcObject = s; }
-    function takePhoto() {
-        const v = document.getElementById('webcam'); const c = document.getElementById('cam-canvas');
-        c.width = v.videoWidth; c.height = v.videoHeight;
-        c.getContext('2d').drawImage(v, 0,0);
-        const photos = JSON.parse(localStorage.getItem('os_photos') || "[]");
-        photos.push(c.toDataURL()); localStorage.setItem('os_photos', JSON.stringify(photos));
-    }
-    function loadPhotos() {
-        const l = document.getElementById('photo-list'); l.innerHTML = "";
-        JSON.parse(localStorage.getItem('os_photos') || "[]").forEach(s => {
-            const i = document.createElement('img'); i.src = s; i.className = "photo-item"; l.appendChild(i);
-        });
-    }
-    function loadVideo(i) { document.getElementById('os-video').src = URL.createObjectURL(i.files[0]); }
-    function loadMusic(i) { document.getElementById('os-audio').src = URL.createObjectURL(i.files[0]); }
-
-    // Game
-    let gold = parseInt(localStorage.getItem('os_gold') || "0");
-    document.getElementById('gold-count').innerText = gold;
-    function clickGold() { gold++; document.getElementById('gold-count').innerText = gold; localStorage.setItem('os_gold', gold); }
-
-    // Settings & Export
-    function applySettings() {
-        const url = document.getElementById('wall-url').value;
-        const pass = document.getElementById('new-pass').value;
-        if(url) { document.getElementById('desktop').style.backgroundImage = `url('${url}')`; localStorage.setItem('os_wall', url); }
-        if(pass) localStorage.setItem('os_pass', pass);
-    }
-    function exportOS() {
-        const s = JSON.stringify(localStorage);
-        const blob = new Blob([`<script>const d=${s}; Object.keys(d).forEach(k=>localStorage.setItem(k,d[k]));<\/script>` + document.documentElement.outerHTML], {type:'text/html'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "My_Ultimate_OS.html"; a.click();
-    }
-
-    // Startup & Draggable
-    window.onload = () => {
-        const wall = localStorage.getItem('os_wall');
-        if(wall) document.getElementById('desktop').style.backgroundImage = `url('${wall}')`;
-    };
-    let active = null; let ox, oy;
-    document.addEventListener('mousedown', e => {
-        const h = e.target.closest('.header');
-        if(h) { active = h.parentElement; ox = e.clientX - active.offsetLeft; oy = e.clientY - active.offsetTop; active.style.zIndex = 2000; }
+    unlockBtn.addEventListener("click", () => {
+      lockscreen.style.display = "none";
     });
-    document.addEventListener('mousemove', e => { if(active) { active.style.left = (e.clientX-ox)+'px'; active.style.top = (e.clientY-oy)+'px'; } });
-    document.addEventListener('mouseup', () => active = null);
-</script>
+
+    // ---------- WINDOWS / DESKTOP ----------
+    const icons = document.querySelectorAll(".app-icon");
+    const windows = {
+      clock: document.getElementById("win-clock"),
+      calc: document.getElementById("win-calc"),
+      calendar: document.getElementById("win-calendar"),
+      files: document.getElementById("win-files"),
+      games: document.getElementById("win-games"),
+      photos: document.getElementById("win-photos"),
+      videos: document.getElementById("win-videos"),
+      camera: document.getElementById("win-camera"),
+      notepad: document.getElementById("win-notepad"),
+      ruffle: document.getElementById("win-ruffle"),
+    };
+
+    let zIndexCounter = 10;
+
+    function openWindow(name) {
+      const win = windows[name];
+      if (!win) return;
+      win.style.display = "flex";
+      win.style.zIndex = ++zIndexCounter;
+    }
+
+    icons.forEach((icon) => {
+      icon.addEventListener("dblclick", () => {
+        const app = icon.dataset.app;
+        openWindow(app);
+      });
+    });
+
+    // Window controls & drag
+    document.querySelectorAll(".window").forEach((win) => {
+      const header = win.querySelector(".window-header");
+      const closeBtn = win.querySelector(".btn-close");
+      const minBtn = win.querySelector(".btn-min");
+
+      closeBtn.addEventListener("click", () => {
+        win.style.display = "none";
+      });
+
+      minBtn.addEventListener("click", () => {
+        win.style.display = "none";
+      });
+
+      header.addEventListener("mousedown", (e) => {
+        win.style.zIndex = ++zIndexCounter;
+        const rect = win.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+
+        function onMouseMove(ev) {
+          win.style.left = ev.clientX - offsetX + "px";
+          win.style.top = ev.clientY - offsetY + "px";
+        }
+
+        function onMouseUp() {
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+        }
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      });
+    });
+
+    // ---------- CALCULATOR ----------
+    const calcDisplay = document.getElementById("calc-display");
+    let calcExpression = "";
+
+    function updateCalcDisplay() {
+      calcDisplay.textContent = calcExpression || "0";
+    }
+
+    document.querySelectorAll(".calc-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.textContent;
+        if (val === "C") {
+          calcExpression = "";
+        } else if (val === "=") {
+          try {
+            // basic eval (for demo only)
+            calcExpression = String(Function("return " + calcExpression)());
+          } catch {
+            calcExpression = "Error";
+          }
+        } else {
+          if (calcExpression === "Error") calcExpression = "";
+          calcExpression += val;
+        }
+        updateCalcDisplay();
+      });
+    });
+
+    // ---------- CALENDAR ----------
+    function buildCalendar() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const today = now.getDate();
+
+      const monthLabel = document.getElementById("calendar-month");
+      monthLabel.textContent = now.toLocaleString(undefined, {
+        month: "long",
+        year: "numeric",
+      });
+
+      const cal = document.getElementById("calendar");
+      cal.innerHTML = "";
+
+      const daysHeader = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      daysHeader.forEach((d) => {
+        const div = document.createElement("div");
+        div.textContent = d;
+        div.classList.add("header");
+        cal.appendChild(div);
+      });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        cal.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement("div");
+        cell.textContent = d;
+        if (d === today) cell.classList.add("today");
+        cal.appendChild(cell);
+      }
+    }
+    buildCalendar();
+
+    // ---------- SIMPLE GAME (console) ----------
+    // Open dev tools console and run: playGuess()
+    function playGuess() {
+      const secret = Math.floor(Math.random() * 5) + 1;
+      const guess = Number(prompt("Guess a number 1–5"));
+      if (!guess) return;
+      if (guess === secret) alert("You win!");
+      else alert("Nope, it was " + secret);
+    }
+    window.playGuess = playGuess;
+
+    // ---------- NOTEPAD PERSISTENCE ----------
+    const notepad = document.getElementById("notepad-text");
+    const savedNote = localStorage.getItem("webos_notepad");
+    if (savedNote) notepad.value = savedNote;
+    notepad.addEventListener("input", () => {
+      localStorage.setItem("webos_notepad", notepad.value);
+    });
+  </script>
 </body>
 </html>
+
 
 
 

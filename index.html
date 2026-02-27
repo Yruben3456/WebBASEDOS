@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Web OS – Single File</title>
+  <title>Web OS – Full Single File</title>
   <style>
     * {
       box-sizing: border-box;
@@ -16,6 +16,43 @@
       overflow: hidden;
       background: #111;
       color: #fff;
+    }
+
+    /* SIGN-IN */
+    #signin-page {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 2000;
+    }
+
+    #signin-page h1 {
+      font-size: 2rem;
+    }
+
+    #signin-page input {
+      padding: 10px;
+      width: 220px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    #signin-page button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #4caf50;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #signin-page button:hover {
+      background: #45a047;
     }
 
     /* Lockscreen */
@@ -87,7 +124,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       gap: 20px;
-      max-width: 420px;
+      max-width: 520px;
     }
 
     .app-icon {
@@ -118,8 +155,8 @@
       position: absolute;
       top: 80px;
       left: 200px;
-      width: 420px;
-      height: 320px;
+      width: 480px;
+      height: 340px;
       background: #222;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
@@ -385,6 +422,15 @@
   </style>
 </head>
 <body>
+  <!-- SIGN-IN PAGE -->
+  <div id="signin-page">
+    <h1>Welcome</h1>
+    <input id="signin-username" placeholder="Username" />
+    <input id="signin-password" type="password" placeholder="Password" />
+    <button id="signin-btn">Sign In</button>
+    <p id="signin-error" style="color:red; display:none;">Incorrect login.</p>
+  </div>
+
   <!-- LOCKSCREEN -->
   <div id="lockscreen">
     <div id="lock-time">--:--</div>
@@ -395,6 +441,10 @@
   <!-- DESKTOP -->
   <div id="desktop">
     <div class="icon-grid">
+      <div class="app-icon" data-app="browser">
+        <div class="app-icon-inner">🌐</div>
+        <span>Browser</span>
+      </div>
       <div class="app-icon" data-app="clock">
         <div class="app-icon-inner">🕒</div>
         <span>Clock</span>
@@ -443,6 +493,26 @@
     </div>
 
     <!-- WINDOWS -->
+
+    <!-- Browser window -->
+    <div class="window" id="win-browser">
+      <div class="window-header">
+        <div class="window-title">Web Browser</div>
+        <div class="window-controls">
+          <button class="window-btn btn-min"></button>
+          <button class="window-btn btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body" style="display:flex; flex-direction:column;">
+        <div style="display:flex; gap:6px; margin-bottom:6px;">
+          <input id="browser-url" placeholder="Enter URL..." style="
+            flex:1; padding:6px; border-radius:4px; border:none; background:#333; color:#fff;">
+          <button id="browser-go" class="small-btn">Go</button>
+        </div>
+        <iframe id="browser-frame" src="https://example.com" style="
+          flex:1; width:100%; border:none; background:#fff;"></iframe>
+      </div>
+    </div>
 
     <!-- Clock window -->
     <div class="window" id="win-clock">
@@ -650,6 +720,24 @@
   <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
 
   <script>
+    // ---------- SIGN-IN ----------
+    const signinPage = document.getElementById("signin-page");
+    const signinBtn = document.getElementById("signin-btn");
+    const signinUser = document.getElementById("signin-username");
+    const signinPass = document.getElementById("signin-password");
+    const signinError = document.getElementById("signin-error");
+
+    const VALID_USER = "admin";
+    const VALID_PASS = "1234";
+
+    signinBtn.addEventListener("click", () => {
+      if (signinUser.value === VALID_USER && signinPass.value === VALID_PASS) {
+        signinPage.style.display = "none";
+      } else {
+        signinError.style.display = "block";
+      }
+    });
+
     // ---------- LOCKSCREEN & CLOCK ----------
     const lockscreen = document.getElementById("lockscreen");
     const lockTime = document.getElementById("lock-time");
@@ -684,6 +772,7 @@
     // ---------- WINDOWS / DESKTOP ----------
     const icons = document.querySelectorAll(".app-icon");
     const windows = {
+      browser: document.getElementById("win-browser"),
       clock: document.getElementById("win-clock"),
       calc: document.getElementById("win-calc"),
       calendar: document.getElementById("win-calendar"),
@@ -834,7 +923,7 @@
       buildCalendar();
     });
 
-    // ---------- NOTEPAD PERSISTENCE ----------
+    // ---------- NOTEPAD ----------
     const notepad = document.getElementById("notepad-text");
     const savedNote = localStorage.getItem("webos_notepad");
     if (savedNote) notepad.value = savedNote;
@@ -842,7 +931,7 @@
       localStorage.setItem("webos_notepad", notepad.value);
     });
 
-    // ---------- FILES APP (virtual disk in localStorage) ----------
+    // ---------- FILES ----------
     const FILES_KEY = "webos_files";
     const fileNameInput = document.getElementById("file-name");
     const fileContentInput = document.getElementById("file-content");
@@ -917,7 +1006,7 @@
 
     renderFiles();
 
-    // ---------- PHOTOS APP ----------
+    // ---------- PHOTOS ----------
     const photosInput = document.getElementById("photos-input");
     const photosGrid = document.getElementById("photos-grid");
     const PHOTOS_KEY = "webos_photos";
@@ -961,7 +1050,7 @@
 
     renderPhotos();
 
-    // ---------- VIDEOS APP ----------
+    // ---------- VIDEOS ----------
     const videosInput = document.getElementById("videos-input");
     const videosList = document.getElementById("videos-list");
 
@@ -976,7 +1065,7 @@
       });
     });
 
-    // ---------- CAMERA APP ----------
+    // ---------- CAMERA ----------
     const cameraVideo = document.getElementById("camera-video");
     const cameraCaptureBtn = document.getElementById("camera-capture");
     const cameraCanvas = document.getElementById("camera-canvas");
@@ -1013,7 +1102,7 @@
       alert("Captured to Photos app.");
     });
 
-    // ---------- GAMES APP ----------
+    // ---------- GAMES ----------
     const guessInput = document.getElementById("guess-input");
     const guessBtn = document.getElementById("guess-btn");
     const guessResult = document.getElementById("guess-result");
@@ -1043,7 +1132,7 @@
       clickCountSpan.textContent = clickCount;
     });
 
-    // ---------- RUFFLE APP ----------
+    // ---------- RUFFLE ----------
     const ruffleInput = document.getElementById("ruffle-input");
     const ruffleContainer = document.getElementById("ruffle-container");
 
@@ -1061,6 +1150,21 @@
       ruffleContainer.appendChild(player);
       player.load({ url });
     });
+
+    // ---------- BROWSER ----------
+    const browserFrame = document.getElementById("browser-frame");
+    const browserGo = document.getElementById("browser-go");
+    const browserUrl = document.getElementById("browser-url");
+
+    browserGo.addEventListener("click", () => {
+      let url = browserUrl.value.trim();
+      if (!url) return;
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+      }
+      browserFrame.src = url;
+    });
   </script>
 </body>
 </html>
+

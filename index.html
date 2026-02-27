@@ -513,14 +513,14 @@
     <!-- Files window -->
     <div class="window" id="win-files">
       <div class="window-header">
-        <div class="window-title">Files (LocalStorage)</div>
+        <div class="window-title">Files (Virtual Disk)</div>
         <div class="window-controls">
           <button class="window-btn btn-min"></button>
           <button class="window-btn btn-close"></button>
         </div>
       </div>
       <div class="window-body">
-        <div class="section-title">Create file</div>
+        <div class="section-title">Create / edit file</div>
         <input id="file-name" class="small-input" placeholder="name.txt" />
         <button id="file-create" class="small-btn">Create</button>
         <textarea id="file-content" class="small-input" style="width:100%;height:60px;margin-top:4px;" placeholder="File content..."></textarea>
@@ -587,7 +587,7 @@
         <input type="file" id="videos-input" accept="video/*" multiple />
         <div id="videos-list"></div>
         <p style="margin-top:6px;font-size:0.75rem;opacity:0.8;">
-          Videos are available while this page is open (not stored permanently).
+          Videos are available while this page is open.
         </p>
       </div>
     </div>
@@ -638,7 +638,7 @@
       </div>
       <div class="window-body">
         <p style="font-size:0.8rem;opacity:0.9;">
-          This uses Ruffle to load Flash content. You need to be online and have a .swf file.
+          Be online, then choose a .swf file to run it with Ruffle.
         </p>
         <input type="file" id="ruffle-input" accept=".swf" class="small-input" />
         <div id="ruffle-container" style="margin-top:8px;"></div>
@@ -703,6 +703,9 @@
       if (!win) return;
       win.style.display = "flex";
       win.style.zIndex = ++zIndexCounter;
+      if (name === "camera") {
+        startCamera();
+      }
     }
 
     icons.forEach((icon) => {
@@ -980,6 +983,11 @@
     let cameraStream = null;
 
     async function startCamera() {
+      if (cameraStream) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        cameraVideo.parentElement.textContent = "Camera not supported in this browser.";
+        return;
+      }
       try {
         cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
         cameraVideo.srcObject = cameraStream;
@@ -987,18 +995,6 @@
         cameraVideo.parentElement.textContent = "Camera access denied or not available.";
       }
     }
-
-    // Start camera when camera window is opened
-    windows.camera.addEventListener("transitionend", () => {
-      if (windows.camera.style.display !== "none" && !cameraStream) {
-        startCamera();
-      }
-    });
-
-    // Also start when double-clicked icon opens it
-    document.querySelector('[data-app="camera"]').addEventListener("dblclick", () => {
-      if (!cameraStream) startCamera();
-    });
 
     cameraCaptureBtn.addEventListener("click", () => {
       if (!cameraStream) {
@@ -1058,7 +1054,7 @@
       ruffleContainer.innerHTML = "";
       const ruffle = window.RufflePlayer?.newest();
       if (!ruffle) {
-        ruffleContainer.textContent = "Ruffle failed to load.";
+        ruffleContainer.textContent = "Ruffle failed to load (check internet).";
         return;
       }
       const player = ruffle.createPlayer();
@@ -1068,4 +1064,3 @@
   </script>
 </body>
 </html>
-
